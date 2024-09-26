@@ -7,6 +7,9 @@ use Doctrine\DBAL\Exception;
 use Symfony\Component\Console\Style\SymfonyStyle;
 
 abstract class ShareMigration {
+
+    const REAL_CIRCLE_TYPE = 16;
+
     public function __construct(protected Connection $conn) {
     }
 
@@ -43,6 +46,34 @@ abstract class ShareMigration {
         if (!fclose($file)) {
             $io->warning('Unable to close file share migration CSV file');
         }
+    }
+
+    /**
+     * Some circles are not "real" circles. There are app circles, group circles, user circles, etc.
+     * So this function makes sure it is a "real" circle, because these are the shares we want to migrate.
+     * Reference: https://github.com/nextcloud/circles/blob/388d39bdd61ed125466777eea4f6163768132184/lib/Model/Member.php#L53
+     *
+     * @param string $circleId
+     * @param SymfonyStyle $io
+     * @return bool
+     */
+    protected function validateCircle(string $circleId, SymfonyStyle $io): bool {
+        try {
+            $result = $this->conn->createQueryBuilder()
+                ->select('source')
+                ->from('oc_circles_circle')
+                ->where('unique_id = ?')
+                ->setParameter(0, $circleId)
+                ->fetchOne();
+        } catch (Exception $e) {
+            $io->error("Circle validation failed [{$circleId}]: ".$e->getMessage());
+            return false;
+        }
+
+        if (!$result || $result !== self::REAL_CIRCLE_TYPE) {
+            return false;
+        }
+        return true;
     }
 
     private function getUniqueFilename(): string {

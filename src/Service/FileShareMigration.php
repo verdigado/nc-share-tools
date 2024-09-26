@@ -10,20 +10,29 @@ class FileShareMigration extends ShareMigration {
 
     public function migrate(SymfonyStyle $io): bool {
         try {
-            $csv = [['Circle ID', 'UID Owner', 'UID Initiator', 'File target', 'Circle Member', 'Result', 'Inserted share ID']];
+            $csv = [['Circle ID', 'UID Owner', 'UID Initiator', 'File target', 'Result', 'Circle Member', 'Inserted share ID']];
             foreach ($io->progressIterate($this->conn->iterateAssociativeIndexed(
                 'SELECT * FROM oc_share WHERE SHARE_TYPE = 7'
             )) as $data) {
+                $csv[] = [$data['share_with'], $data['uid_owner'], $data['uid_initiator'], $data['file_target']];
+
+                if (!$this->validateCircle($data['share_with'], $io)) {
+                    // skip unreal circles
+                    $csv[] = ['', '', '', '', 'Skipped: not a real circle'];
+                    continue;
+                }
+
                 try {
                     $circleMembers = $this->resolveCircleMembers($data['share_with']);
                 } catch (Exception $e) {
-                    $csv[] = ['', '', '', '', '', 'Failed to get circle members: ' . $e->getMessage()];
+                    $csv[] = ['', '', '', '', 'Failed to get circle members: ' . $e->getMessage()];
                     continue;
                 }
-                $csv[] = [$data['share_with'], $data['uid_owner'], $data['uid_initiator'], $data['file_target']];
+
                 if (empty($circleMembers)) {
-                    $csv[] = ['', '', '', '', '', 'No circle members found'];
+                    $csv[] = ['', '', '', '', 'No circle members found'];
                 }
+
                 foreach ($circleMembers as $circleMember) {
                     if ($data['uid_owner'] === $circleMember) {
                         // don't share with the owner of the file
@@ -44,9 +53,9 @@ class FileShareMigration extends ShareMigration {
                         $result = $qb->executeStatement();
                         assert($result == 1);
                         $lastSharedId = $this->conn->lastInsertId();
-                        $csv[] = ['', '', '', '', $circleMember, 'Success', $lastSharedId];
+                        $csv[] = ['', '', '', '', 'Success', $circleMember, $lastSharedId];
                     } catch (Exception|\AssertionError $e) {
-                        $csv[] = ['', '', '', '', $circleMember, 'Failure: ' . $e->getMessage()];
+                        $csv[] = ['', '', '', '', 'Failure: ' . $e->getMessage(), $circleMember];
                     }
                 }
             }

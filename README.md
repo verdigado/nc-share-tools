@@ -1,6 +1,6 @@
 # Nextcloud Circles Share Migration 
-PHP script to migrate all shares to nextcloud circles into single user shares. The script writes all migrated share
-into CSV file.
+PHP script to migrate all shares to nextcloud circles, which get replaced by shares to the individual circle members.
+The script writes all migrated shares into a CSV file.
 
 ![CSV Export](docs/csv_export.png)
 
@@ -11,7 +11,7 @@ cp .env .env.local
 ```
 
 ## Usage
-- List all command
+- List all commands
 ```console
 php app.php
 ```

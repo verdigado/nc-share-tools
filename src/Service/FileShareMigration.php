@@ -6,13 +6,12 @@ use Doctrine\DBAL\Exception;
 use Symfony\Component\Console\Style\SymfonyStyle;
 
 class FileShareMigration extends ShareMigration {
-    const USER_SHARE_TYPE = 0;
-
     public function migrate(SymfonyStyle $io): bool {
         try {
             $csv = [['Circle ID', 'UID Owner', 'UID Initiator', 'File target', 'Result', 'Circle Member', 'Inserted share ID']];
             foreach ($io->progressIterate($this->conn->iterateAssociativeIndexed(
-                'SELECT * FROM oc_share WHERE SHARE_TYPE = 7'
+                'SELECT * FROM oc_share WHERE SHARE_TYPE = ?',
+                [0 => self::CIRCLE_SHARE_TYPE]
             )) as $data) {
                 $csv[] = [$data['share_with'], $data['uid_owner'], $data['uid_initiator'], $data['file_target']];
 
@@ -42,7 +41,7 @@ class FileShareMigration extends ShareMigration {
                     $data['share_with'] = $circleMember;
                     $data['password'] = null;
                     $data['token'] = null;
-                    $data['attributes'] = '[["permissions","download",true]]';
+                    $data['attributes'] = self::SHARE_DOWNLOAD_PERMISSION;
                     try {
                         $qb = $this->conn->createQueryBuilder()
                             ->insert('oc_share');

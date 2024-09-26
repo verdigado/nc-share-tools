@@ -140,5 +140,5 @@ fabric.properties
 /var/
 ###< symfony/framework-bundle ###
 
-/*migration.csv
+/*migration*.csv
 /.~lock.*.csv#

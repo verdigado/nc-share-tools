@@ -29,7 +29,7 @@ abstract class ShareMigration {
     }
 
     protected function writeResultToCsv(array $data, SymfonyStyle $io): void {
-        $file = fopen(dirname(__FILE__, 3).'/file_share_migration.csv', 'w');
+        $file = fopen($this->getUniqueFilename(), 'w');
 
         if (!$file) {
             $io->warning('Unable to open file share migration CSV file');
@@ -43,6 +43,19 @@ abstract class ShareMigration {
         if (!fclose($file)) {
             $io->warning('Unable to close file share migration CSV file');
         }
+    }
+
+    private function getUniqueFilename(): string {
+        $fullPath = dirname(__FILE__, 3).'/file_share_migration.csv';
+        $counter = 1;
+
+        // Check if the file exists, and if so, append a counter
+        while (file_exists($fullPath)) {
+            $fullPath = dirname(__FILE__, 3)."/file_share_migration_{$counter}.csv";
+            $counter++;
+        }
+
+        return $fullPath;
     }
 
 }

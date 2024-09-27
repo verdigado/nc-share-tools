@@ -6,6 +6,13 @@ use Doctrine\DBAL\Exception;
 use Symfony\Component\Console\Style\SymfonyStyle;
 
 class FileShareMigration extends ShareMigration {
+
+    const USER_SHARE_TYPE = 0;
+
+    const CIRCLE_SHARE_TYPE = 7;
+
+    const SHARE_DOWNLOAD_PERMISSION = '[["permissions","download",true]]';
+
     public function migrate(SymfonyStyle $io): bool {
         try {
             $csv = [['Circle ID', 'UID Owner', 'UID Initiator', 'File target', 'Result', 'Circle Member', 'Inserted share ID']];

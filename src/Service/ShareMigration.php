@@ -8,12 +8,6 @@ use Symfony\Component\Console\Style\SymfonyStyle;
 
 abstract class ShareMigration {
 
-    const USER_SHARE_TYPE = 0;
-
-    const CIRCLE_SHARE_TYPE = 7;
-
-    const SHARE_DOWNLOAD_PERMISSION = '[["permissions","download",true]]';
-
     const REAL_CIRCLE_TYPE = 16;
 
     public function __construct(protected Connection $conn) {

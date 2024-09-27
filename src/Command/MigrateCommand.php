@@ -2,6 +2,7 @@
 
 namespace App\Command;
 
+use App\Service\CalendarShareMigration;
 use App\Service\FileShareMigration;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
@@ -14,12 +15,18 @@ use Symfony\Component\Console\Style\SymfonyStyle;
     description: 'Migrate nextcloud circle shares to single user shares',
 )]
 class MigrateCommand extends Command {
-    public function __construct(private readonly FileShareMigration $fileShareMigration, ?string $name = null) {
+    public function __construct(
+        private readonly FileShareMigration $fileShareMigration,
+        private readonly CalendarShareMigration $calendarShareMigration,
+        ?string $name = null
+    ) {
         parent::__construct($name);
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int {
         $io = new SymfonyStyle($input, $output);
-        return $this->fileShareMigration->migrate($io) ? Command::SUCCESS : Command::FAILURE;
+        $fileStatus = $this->fileShareMigration->migrate($io);
+        $calendarStatus = $this->calendarShareMigration->migrate($io);
+        return $fileStatus && $calendarStatus ? Command::SUCCESS : Command::FAILURE;
     }
 }

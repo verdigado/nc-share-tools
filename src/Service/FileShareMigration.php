@@ -59,7 +59,7 @@ class FileShareMigration extends ShareMigration {
                 }
             }
 
-            $this->writeResultToCsv($csv, $io);
+            $this->writeResultToCsv($csv, ExportFilename::FileShare, $io);
             return true;
         } catch (Exception $e) {
             $io->error('Failed to get circle shares: ' . $e->getMessage());

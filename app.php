@@ -4,6 +4,7 @@
 require __DIR__ . '/vendor/autoload.php';
 
 use App\Command\MigrateCommand;
+use App\Service\CalendarShareMigration;
 use App\Service\FileShareMigration;
 use Doctrine\DBAL\DriverManager;
 use Symfony\Component\Console\Application;
@@ -27,7 +28,8 @@ $application = new Application();
 
 // ... register commands
 $command = new MigrateCommand(
-    new FileShareMigration($conn)
+    new FileShareMigration($conn),
+    new CalendarShareMigration($conn)
 );
 $application->add($command);
 

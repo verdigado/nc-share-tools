@@ -27,9 +27,27 @@ class MigrateCommand extends Command {
 
     protected function execute(InputInterface $input, OutputInterface $output): int {
         $io = new SymfonyStyle($input, $output);
+
+        $io->info("Starting file share migration...");
         $fileStatus = $this->fileShareMigration->migrate($io);
+        $this->formatPartialResult($io, $fileStatus, 'files/folders');
+
+        $io->info("Starting calendar share migration...");
         $calendarStatus = $this->calendarShareMigration->migrate($io);
+        $this->formatPartialResult($io, $calendarStatus, 'calendar');
+
+        $io->info("Starting deck share migration...");
         $deckStatus = $this->deckShareMigration->migrate($io);
+        $this->formatPartialResult($io, $deckStatus, 'deck');
+
         return $fileStatus && $calendarStatus && $deckStatus ? Command::SUCCESS : Command::FAILURE;
+    }
+
+    private function formatPartialResult(SymfonyStyle $io, bool $result, string $type): void {
+        if ($result) {
+            $io->success("Partial migration completed for {$type}.");
+        } else {
+            $io->error("Partial migration failed for {$type}.");
+        }
     }
 }

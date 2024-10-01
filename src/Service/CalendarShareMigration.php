@@ -16,13 +16,13 @@ class CalendarShareMigration extends ShareMigration {
     public function migrate(SymfonyStyle $io): bool {
         try {
             $csv = [$this->getCsvExportHeader()];
-            foreach ($this->conn->iterateAssociativeIndexed(
+            foreach ($io->progressIterate($this->conn->iterateAssociativeIndexed(
                 'SELECT * FROM oc_dav_shares WHERE type = ? AND principaluri LIKE ?',
                 [
                     0 => self::DAV_SHARE_CALENDAR_TYPE,
                     1 => self::PRINCIPALURI_CIRCLE_PREFIX.'%',
                 ]
-            ) as $row) {
+            )) as $row) {
                 $circleId = $this->parsePrincipaluri($row['principaluri'], self::PRINCIPALURI_CIRCLE_PREFIX);
 
                 if (!$circleId) {

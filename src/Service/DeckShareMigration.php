@@ -14,10 +14,10 @@ class DeckShareMigration extends ShareMigration {
     public function migrate(SymfonyStyle $io): bool {
         $csv = [$this->getCsvExportHeader()];
         try {
-            foreach ($this->conn->iterateAssociativeIndexed(
+            foreach ($io->progressIterate($this->conn->iterateAssociativeIndexed(
                 'SELECT * FROM oc_deck_board_acl WHERE type = :type',
                 ['type' => self::PERMISSION_TYPE_CIRCLE]
-            ) as $row) {
+            )) as $row) {
                 $boardOwner = $this->getBoardOwner($row['board_id']);
 
                 $csv[] = [$row['participant'], $row['board_id'], $boardOwner];

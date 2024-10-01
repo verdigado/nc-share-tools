@@ -3,6 +3,7 @@
 namespace App\Command;
 
 use App\Service\CalendarShareMigration;
+use App\Service\DeckShareMigration;
 use App\Service\FileShareMigration;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
@@ -18,6 +19,7 @@ class MigrateCommand extends Command {
     public function __construct(
         private readonly FileShareMigration $fileShareMigration,
         private readonly CalendarShareMigration $calendarShareMigration,
+        private readonly DeckShareMigration $deckShareMigration,
         ?string $name = null
     ) {
         parent::__construct($name);
@@ -27,6 +29,7 @@ class MigrateCommand extends Command {
         $io = new SymfonyStyle($input, $output);
         $fileStatus = $this->fileShareMigration->migrate($io);
         $calendarStatus = $this->calendarShareMigration->migrate($io);
-        return $fileStatus && $calendarStatus ? Command::SUCCESS : Command::FAILURE;
+        $deckStatus = $this->deckShareMigration->migrate($io);
+        return $fileStatus && $calendarStatus && $deckStatus ? Command::SUCCESS : Command::FAILURE;
     }
 }

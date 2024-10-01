@@ -10,10 +10,14 @@ abstract class ShareMigration {
 
     const REAL_CIRCLE_TYPE = 16;
 
+    const CSV_EXPORT_PADDING = ['', '', ''];
+
     public function __construct(protected Connection $conn) {
     }
 
     abstract public function migrate(SymfonyStyle $io): bool;
+
+    abstract protected function getCsvExportHeader(): array;
 
     /**
      * @throws Exception
@@ -32,10 +36,11 @@ abstract class ShareMigration {
     }
 
     protected function writeResultToCsv(array $data, ExportFilename $filename, SymfonyStyle $io): void {
-        $file = fopen($this->getUniqueFilename($filename), 'w');
+        $uniqueFilename = $this->getUniqueFilename($filename);
+        $file = fopen($uniqueFilename, 'w');
 
         if (!$file) {
-            $io->warning('Unable to open file share migration CSV file');
+            $io->warning('Unable to open writable CSV file: ' . $uniqueFilename);
             return;
         }
 
@@ -44,7 +49,7 @@ abstract class ShareMigration {
         }
 
         if (!fclose($file)) {
-            $io->warning('Unable to close file share migration CSV file');
+            $io->warning('Unable to close CSV file: ' . $uniqueFilename);
         }
     }
 
@@ -76,6 +81,25 @@ abstract class ShareMigration {
         return true;
     }
 
+    protected function addUserShare(string $table, array $columns, string $circleMember): array {
+        try {
+            $qb = $this->conn->createQueryBuilder()
+                ->insert($table);
+
+            foreach ($columns as $column => $value) {
+                $qb->setValue($column, ':' . $column);
+            }
+            $qb->setParameters($columns);
+            $result = $qb->executeStatement();
+
+            assert($result == 1);
+            $lastShareId = $this->conn->lastInsertId();
+            return $this->formatLeftPadding(['Success', $circleMember, $lastShareId]);
+        } catch (Exception|\AssertionError $e) {
+            return $this->formatLeftPadding(['Failure: ' . $e->getMessage(), $circleMember]);
+        }
+    }
+
     private function getUniqueFilename(ExportFilename $filename): string {
         $fullPath = dirname(__FILE__, 3)."/{$filename->value}_migration.csv";
         $counter = 1;
@@ -87,6 +111,10 @@ abstract class ShareMigration {
         }
 
         return $fullPath;
+    }
+
+    protected function formatLeftPadding(array $result): array {
+        return array_merge(self::CSV_EXPORT_PADDING, $result);
     }
 
 }

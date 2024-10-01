@@ -15,7 +15,7 @@ class CalendarShareMigration extends ShareMigration {
 
     public function migrate(SymfonyStyle $io): bool {
         try {
-            $csv = [['Circle ID', 'Resource ID', 'Resource Owner', 'Result', 'Circle Member', 'Inserted share ID']];
+            $csv = [$this->getCsvExportHeader()];
             foreach ($this->conn->iterateAssociativeIndexed(
                 'SELECT * FROM oc_dav_shares WHERE type = ? AND principaluri LIKE ?',
                 [
@@ -35,18 +35,20 @@ class CalendarShareMigration extends ShareMigration {
                 $csv[] = [$circleId, $row['resourceid'], $resourceOwner];
                 if (!$this->validateCircle($circleId, $io)) {
                     // skip unreal circles
-                    $csv[] = ['', '', '', 'Skipped: not a real circle'];
+                    $csv[] = $this->formatLeftPadding(['Skipped: not a real circle']);
+                    continue;
                 }
 
                 try {
                     $circleMembers = $this->resolveCircleMembers($circleId);
                 } catch (Exception $e) {
-                    $csv[] = ['', '', '', 'Failed to get circle members: ' . $e->getMessage()];
+                    $csv[] = $this->formatLeftPadding(['Failed to get circle members: ' . $e->getMessage()]);
                     continue;
                 }
 
                 if (empty($circleMembers)) {
-                    $csv[] = ['', '', '', 'No circle members found'];
+                    $csv[] = $this->formatLeftPadding(['No circle members found']);
+                    continue;
                 }
 
                 foreach ($circleMembers as $circleMember) {
@@ -57,20 +59,7 @@ class CalendarShareMigration extends ShareMigration {
 
                     $row['principaluri'] = self::PRINCIPALURI_USER_PREFIX . $circleMember;
 
-                    try {
-                        $qb = $this->conn->createQueryBuilder()
-                            ->insert('oc_dav_shares');
-                        foreach ($row as $column => $value) {
-                            $qb->setValue($column, ':' . $column);
-                        }
-                        $qb->setParameters($row);
-                        $result = $qb->executeStatement();
-                        assert($result == 1);
-                        $lastSharedId = $this->conn->lastInsertId();
-                        $csv[] = ['', '', '', 'Success', $circleMember, $lastSharedId];
-                    } catch (Exception $e) {
-                        $csv[] = ['', '', '', 'Failure: ' . $e->getMessage(), $circleMember];
-                    }
+                    $csv[] = $this->addUserShare('oc_dav_shares', $row, $circleMember);
                 }
             }
 
@@ -105,5 +94,9 @@ class CalendarShareMigration extends ShareMigration {
         } catch (Exception $e) {
             return false;
         }
+    }
+
+    protected function getCsvExportHeader(): array {
+        return ['Circle ID', 'Resource ID', 'Resource Owner', 'Result', 'Circle Member', 'Inserted share ID'];
     }
 }

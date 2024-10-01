@@ -19,3 +19,26 @@ php app.php
 ```console
 php app.php migrate
 ```
+
+## Development
+
+Install all dependencies including dev dependencies:
+```console
+composer i
+```
+
+## Tests
+
+Install first all dependencies like in the section before.
+Also make sure to set up a mysql database. This is not included in the test setup.
+Then run all tests:
+```console
+vendor/bin/phpunit tests
+```
+
+## Deployment
+
+Skip dev dependencies during installation:
+```console
+composer i --no-dev
+```

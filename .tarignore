@@ -1,0 +1,10 @@
+.gitignore
+.tarignore
+.env.local
+
+composer.phar
+
+.git
+.idea
+.github
+tests

@@ -1,0 +1,27 @@
+name: Create release
+
+env:
+  ARCHIVE: nc-share-tools.tar.gz
+
+on:
+  push:
+    tags:
+      - v**
+jobs:
+  create-release:
+    name: "Create release"
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: "Create archive"
+        run: |
+          CURRENT_DIR=$(pwd)
+          cd ..
+          tar czf ${ARCHIVE} -X ${CURRENT_DIR}/.tarignore ${CURRENT_DIR##*/}
+      - name: "Create hash files"
+        run: sha512sum $ARCHIVE | awk '{ print $1 }' > "${ARCHIVE}.sha512"
+      - name: "Create release"
+        run: gh release create ${GITHUB_REF_NAME} ${ARCHIVE} ${ARCHIVE}.sha512 --generate-notes --verify-tag
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

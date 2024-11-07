@@ -19,12 +19,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: "Create archive"
-        run: |
-          REPO_PATH=${{ github.workspace }}
-          tar czf ${ARCHIVE} -X ${REPO_PATH}/.tarignore ${REPO_PATH##*/}
+        run: tar czf ${ARCHIVE} -X ${REPO_PATH}/.tarignore ${REPO_PATH##*/}
+        env:
+          REPO_PATH: ${{ github.workspace }}
       - name: "Create hash files"
         run: sha512sum $ARCHIVE | awk '{ print $1 }' > "${ARCHIVE}.sha512"
       - name: "Create release"
         run: gh release create ${GITHUB_REF_NAME} ${ARCHIVE} ${ARCHIVE}.sha512 --generate-notes --verify-tag
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        working-directory: ${{ github.workspace }}

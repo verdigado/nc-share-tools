@@ -1,8 +1,5 @@
 name: Create release
 
-env:
-  ARCHIVE: nc-share-tools.tar.gz
-
 on:
   push:
     tags:
@@ -11,21 +8,26 @@ jobs:
   create-release:
     name: "Create release"
     runs-on: ubuntu-latest
-
-    defaults:
-      run:
-        working-directory: ..
+    env:
+      ARCHIVE: nc-share-tools.tar.gz
+      ARCHIVE_PATH: ${{ runner.tmp }}
 
     steps:
       - uses: actions/checkout@v4
+      - name: Install dependencies
+        uses: php-actions/composer@v6
+        with:
+          dev: no
       - name: "Create archive"
         run: tar czf ${ARCHIVE} -X ${REPO_PATH}/.tarignore ${REPO_PATH##*/}
+        working-directory: ${{ env.ARCHIVE_PATH }}
         env:
           REPO_PATH: ${{ github.workspace }}
       - name: "Create hash files"
         run: sha512sum $ARCHIVE | awk '{ print $1 }' > "${ARCHIVE}.sha512"
+        working-directory: ${{ env.ARCHIVE_PATH }}
       - name: "Create release"
-        run: gh release create ${GITHUB_REF_NAME} ../${ARCHIVE} ../${ARCHIVE}.sha512 --generate-notes --verify-tag
+        run: gh release create ${GITHUB_REF_NAME} ${{ env.ARCHIVE_PATH }}/${ARCHIVE} ${{ env.ARCHIVE_PATH }}/${ARCHIVE}.sha512 --generate-notes --verify-tag
+        working-directory: ${{ github.workspace }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        working-directory: ${{ github.workspace }}

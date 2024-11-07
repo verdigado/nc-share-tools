@@ -1,0 +1,9 @@
+src
+vendor
+docs
+.env
+LICENSE
+app.php
+composer.json
+composer.lock
+README.md

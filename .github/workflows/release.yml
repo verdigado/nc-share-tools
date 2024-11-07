@@ -19,7 +19,7 @@ jobs:
         with:
           dev: no
       - name: "Create archive"
-        run: tar czf ${ARCHIVE} -C ${{ github.workspace }} -X ${{ github.workspace }}/.tarignore .
+        run: tar czf ${ARCHIVE} -C ${{ github.workspace }} -T ${{ github.workspace }}/.tarcontent .
         working-directory: ${{ env.ARCHIVE_PATH }}
       - name: "Create hash files"
         run: sha512sum ${ARCHIVE} | awk '{ print $1 }' > "${ARCHIVE}.sha512"

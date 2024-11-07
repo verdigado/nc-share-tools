@@ -10,7 +10,6 @@ jobs:
     runs-on: ubuntu-latest
     env:
       ARCHIVE: nc-share-tools.tar.gz
-      ARCHIVE_PATH: ${{ runner.tmp }}
 
     steps:
       - uses: actions/checkout@v4
@@ -19,15 +18,13 @@ jobs:
         with:
           dev: no
       - name: "Create archive"
-        run: tar czf ${ARCHIVE} -X ${REPO_PATH}/.tarignore ${REPO_PATH##*/}
-        working-directory: ${{ env.ARCHIVE_PATH }}
-        env:
-          REPO_PATH: ${{ github.workspace }}
+        run: tar czf ${ARCHIVE} -X ${{ github.workspace }}/.tarignore -C ${{ github.workspace }} .
+        working-directory: ${{ runner.tmp }}
       - name: "Create hash files"
-        run: sha512sum $ARCHIVE | awk '{ print $1 }' > "${ARCHIVE}.sha512"
-        working-directory: ${{ env.ARCHIVE_PATH }}
+        run: sha512sum ${ARCHIVE} | awk '{ print $1 }' > "${ARCHIVE}.sha512"
+        working-directory: ${{ runner.tmp }}
       - name: "Create release"
-        run: gh release create ${GITHUB_REF_NAME} ${{ env.ARCHIVE_PATH }}/${ARCHIVE} ${{ env.ARCHIVE_PATH }}/${ARCHIVE}.sha512 --generate-notes --verify-tag
+        run: gh release create ${GITHUB_REF_NAME} ${{ runner.tmp }}/${ARCHIVE} ${{ runner.tmp }}/${ARCHIVE}.sha512 --generate-notes --verify-tag
         working-directory: ${{ github.workspace }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

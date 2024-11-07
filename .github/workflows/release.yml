@@ -12,13 +12,16 @@ jobs:
     name: "Create release"
     runs-on: ubuntu-latest
 
+    defaults:
+      run:
+        working-directory: ..
+
     steps:
       - uses: actions/checkout@v4
       - name: "Create archive"
         run: |
-          CURRENT_DIR=$(pwd)
-          cd ..
-          tar czf ${ARCHIVE} -X ${CURRENT_DIR}/.tarignore ${CURRENT_DIR##*/}
+          REPO_PATH=${{ github.workspace }}
+          tar czf ${ARCHIVE} -X ${REPO_PATH}/.tarignore ${REPO_PATH##*/}
       - name: "Create hash files"
         run: sha512sum $ARCHIVE | awk '{ print $1 }' > "${ARCHIVE}.sha512"
       - name: "Create release"

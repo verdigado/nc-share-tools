@@ -1,6 +1,9 @@
-# Nextcloud Circles Share Migration 
-PHP script to migrate all shares to nextcloud circles, which get replaced by shares to the individual circle members.
-The script writes all migrated shares into CSV files.
+# Nextcloud Share Tools
+
+Supported commands:
+
+- Migrate Circle Shares: PHP script to migrate all shares to nextcloud circles, which get replaced by shares to the individual circle members. The script writes all migrated shares into CSV files.
+- Create Calendar Shares: Share all calendars to a single user
 
 ![CSV Export](docs/csv_export.png)
 

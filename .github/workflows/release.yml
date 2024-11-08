@@ -22,7 +22,7 @@ jobs:
         run: tar czf ${ARCHIVE} -C ${{ github.workspace }} -T ${{ github.workspace }}/.tarcontent
         working-directory: ${{ env.ARCHIVE_PATH }}
       - name: "Create hash files"
-        run: sha512sum ${ARCHIVE} | awk '{ print $1 }' > "${ARCHIVE}.sha512"
+        run: sha512sum ${ARCHIVE} > "${ARCHIVE}.sha512"
         working-directory: ${{ env.ARCHIVE_PATH }}
       - name: "Create release"
         run: gh release create ${GITHUB_REF_NAME} ${{ env.ARCHIVE_PATH }}/${ARCHIVE} ${{ env.ARCHIVE_PATH }}/${ARCHIVE}.sha512 --generate-notes --verify-tag

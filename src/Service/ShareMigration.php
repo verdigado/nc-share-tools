@@ -6,7 +6,7 @@ use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Exception;
 use Symfony\Component\Console\Style\SymfonyStyle;
 
-abstract class ShareMigration {
+abstract class ShareMigration extends CsvExport {
 
     const REAL_CIRCLE_TYPE = 16;
 
@@ -33,24 +33,6 @@ abstract class ShareMigration {
             ->fetchAllKeyValue();
 
         return array_unique($result);
-    }
-
-    protected function writeResultToCsv(array $data, ExportFilename $filename, SymfonyStyle $io): void {
-        $uniqueFilename = $this->getUniqueFilename($filename);
-        $file = fopen($uniqueFilename, 'w');
-
-        if (!$file) {
-            $io->warning('Unable to open writable CSV file: ' . $uniqueFilename);
-            return;
-        }
-
-        foreach ($data as $row) {
-            fputcsv($file, $row);
-        }
-
-        if (!fclose($file)) {
-            $io->warning('Unable to close CSV file: ' . $uniqueFilename);
-        }
     }
 
     /**
@@ -98,19 +80,6 @@ abstract class ShareMigration {
         } catch (Exception|\AssertionError $e) {
             return $this->formatLeftPadding(['Failure: ' . $e->getMessage(), $circleMember]);
         }
-    }
-
-    private function getUniqueFilename(ExportFilename $filename): string {
-        $fullPath = dirname(__FILE__, 3)."/{$filename->value}_migration.csv";
-        $counter = 1;
-
-        // Check if the file exists, and if so, append a counter
-        while (file_exists($fullPath)) {
-            $fullPath = dirname(__FILE__, 3)."/{$filename->value}_migration_{$counter}.csv";
-            $counter++;
-        }
-
-        return $fullPath;
     }
 
     protected function formatLeftPadding(array $result): array {

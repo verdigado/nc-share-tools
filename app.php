@@ -4,7 +4,9 @@
 require __DIR__ . '/vendor/autoload.php';
 
 use App\Command\MigrateCommand;
+use App\Command\ShareCalendarCommand;
 use App\Service\CalendarShareMigration;
+use App\Service\CsvExport;
 use App\Service\DeckShareMigration;
 use App\Service\FileShareMigration;
 use Doctrine\DBAL\DriverManager;
@@ -24,6 +26,7 @@ $connectionParams = [
 ];
 
 $conn = DriverManager::getConnection($connectionParams);
+$csvExport = new CsvExport();
 
 $application = new Application();
 
@@ -33,6 +36,9 @@ $command = new MigrateCommand(
     new CalendarShareMigration($conn),
     new DeckShareMigration($conn)
 );
+$application->add($command);
+
+$command = new ShareCalendarCommand($conn, $csvExport);
 $application->add($command);
 
 $application->run();
